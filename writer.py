@@ -14,44 +14,8 @@ bing_api_key = os.environ.get("BING_API_KEY")
 search_results_count = os.environ.get("SEARCH_RESULTS_COUNT")
 
 
+
 def get_entities(text: str) -> list:
-    # Set the parameters for the API request.
-    params = {
-        'showStats': True,
-    }
-
-    # Set the headers for the API request, including the subscription key.
-    headers = {
-        'Ocp-Apim-Subscription-Key': azure_language_api_key,
-        'Content-Type': 'application/json',
-    }
-
-    # Set the body of the API request.
-    body = {
-        'documents': [
-            {
-                'id': '1',
-                'text': text,
-            }
-        ]
-    }
-
-    # Make the API request.
-    response = requests.post(azure_language_endpoint, params=params, headers=headers, json=body)
-    print("ENTITIES: ")
-    print(response.json())
-
-    # Check if the request was successful (HTTP status code 200).
-    if response.status_code == 200:
-        entities = response.json()['documents'][0]['entities']
-        return entities
-    else:
-        error = f"Error: {response.status_code} - {response.text}"
-        print(error)
-        return error
-
-
-def get_entities_2(text: str) -> list:
     text_analytics_client = TextAnalyticsClient(endpoint=azure_language_endpoint, credential=AzureKeyCredential(azure_language_api_key))
 
     # TODO: split into sentences here?  See https://learn.microsoft.com/en-us/answers/questions/1149065/does-azure-have-an-api-for-separating-sentences-wi
@@ -109,7 +73,7 @@ def assist(inputText):
     output = "Here are some news snippets related to the entities in your text:\n"
     
     # Parse the input text and extract the entities
-    entities = get_entities_2(inputText)
+    entities = get_entities(inputText)
     
     # Call Bing API to get news articles on the entities
     for entity in entities:
