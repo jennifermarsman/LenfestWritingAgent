@@ -13,40 +13,6 @@ bing_endpoint = os.environ.get("BING_ENDPOINT")
 bing_api_key = os.environ.get("BING_API_KEY")
 search_results_count = os.environ.get("SEARCH_RESULTS_COUNT")
 
-#print(azure_language_endpoint)
-#print(azure_language_api_key)
-
-'''
-def greet(name):
-    return "Hello " + name + "!"
-
-demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
-
-if __name__ == "__main__":
-    demo.launch()
-'''
-
-'''
-# Create a Gradio interface
-with gr.Blocks() as demo:
-    with gr.Row():
-        with gr.Column():
-            gr.Image(value="spirit_guide.png", show_label=False, interactive=False, show_download_button=False)
-        with gr.Column():
-            gr.ChatInterface(fn=predict)
-'''
-
-'''
-def assist(name):
-    return "Hello, " + name + "!"
-
-demo = gr.Interface(
-    fn=assist,
-    inputs=["text"],
-    outputs=[gr.Textbox(label="Sidebar", lines=10)],
-)
-'''
-
 
 def get_entities(text: str) -> list:
     # Set the parameters for the API request.
@@ -83,55 +49,25 @@ def get_entities(text: str) -> list:
         error = f"Error: {response.status_code} - {response.text}"
         print(error)
         return error
-    
 
 
 def get_entities_2(text: str) -> list:
     text_analytics_client = TextAnalyticsClient(endpoint=azure_language_endpoint, credential=AzureKeyCredential(azure_language_api_key))
 
     # TODO: split into sentences here?  See https://learn.microsoft.com/en-us/answers/questions/1149065/does-azure-have-an-api-for-separating-sentences-wi
-    
-    # Set the document  
-    #document = {  
-    #    "documents": [  
-    #        {  
-    #            "id": "1",  
-    #            "text": text  
-    #        }  
-    #    ]  
-    #} 
-    document = [text]
-    
+    document = [text]  
     result = text_analytics_client.recognize_entities(document)
+    # TODO: need better error handling here
+    
     print("ENTITIES 2: ")
     print(result)
     # Example:
     #[RecognizeEntitiesResult(id=0, entities=[CategorizedEntity(text=Jennifer Marsman, category=Person, subcategory=None, length=16, offset=0, confidence_score=1.0), CategorizedEntity(text=William, category=Person, subcategory=None, length=7, offset=39, confidence_score=0.99), CategorizedEntity(text=yesterday, category=DateTime, subcategory=Date, length=9, offset=70, confidence_score=1.0), CategorizedEntity(text=nuptuals, category=Event, subcategory=None, length=8, offset=86, confidence_score=0.93), CategorizedEntity(text=Westminster Abbey, category=Location, subcategory=None, length=17, offset=108, confidence_score=0.98), CategorizedEntity(text=London, category=Location, subcategory=City, length=6, offset=129, confidence_score=1.0)], warnings=[], statistics=None, is_error=False, kind=EntityRecognition)]
 
-    #result = [review for review in result if not review.is_error]
-    #organization_to_reviews: typing.Dict[str, typing.List[str]] = {}
-    '''
-    # TODO: rename review to entity
-    for review in enumerate(result):
-        for entity in review['entities']:
-            print(f"Entity '{entity.text}' has category '{entity.category}'")
-            #if entity.category == 'Organization':
-                #organization_to_reviews.setdefault(entity.text, [])
-                #organization_to_reviews[entity.text].append(reviews[idx])
-    '''
-    '''
-    for organization, reviews in organization_to_reviews.items():
-        print(
-            "\n\nOrganization '{}' has left us the following review(s): {}".format(
-                organization, "\n\n".join(reviews)
-            )
-        )
-    '''
-
+    # Quick scan for debugging only
     for entity in result[0].entities:
         print(f"Text: {entity.text}, Category: {entity.category}")
 
-    #return result
     return result[0].entities
 
 
@@ -169,29 +105,24 @@ def get_bing_snippet(query: str) -> str:
         return error
 
 
-
-
 def assist(inputText):
     output = "Here are some news snippets related to the entities in your text:\n"
     
     # Parse the input text and extract the entities
     entities = get_entities_2(inputText)
-    print("Debug: entering entities loop")
-
+    
     # Call Bing API to get news articles on the entities
     for entity in entities:
         print(entity)
         print(entity.text)
         print(entity.category)
-        entity_name = entity.text
         # TODO: exclude certain entity categories?  
-        news_snippets = get_bing_snippet(entity_name)
+        news_snippets = get_bing_snippet(entity.text)
         print("NEWS SNIPPETS: ")
         print(news_snippets)
-        output += f"\n{entity_name}:  ({entity.category})\n"
+        output += f"\n{entity.text}:  ({entity.category})\n"
         for webpage in news_snippets:
             output += f"* News snippet from {webpage[2]}: {webpage[1]} \n"
-            #output += f"News snippet: {news_snippets[0][1]}\n"
 
     return output
 
