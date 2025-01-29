@@ -1,0 +1,3 @@
+gradio
+azure-core
+azure-ai-textanalytics
