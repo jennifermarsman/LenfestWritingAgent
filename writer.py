@@ -42,6 +42,11 @@ def get_bing_snippet(query: str) -> str:
     params = {
         'q': query,
         'count': count,
+        'site': "startribune.com",
+        #'answerCount': count,
+        #'promote': "News",
+        #'responseFilter': "News",
+        # TODO: explore using promote news and others - https://learn.microsoft.com/en-us/bing/search-apis/bing-web-search/reference/query-parameters
     }
 
     # Set the headers for the API request, including the subscription key.
